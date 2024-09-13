@@ -1,25 +1,54 @@
 <!DOCTYPE html>
 <html lang="en" class="h-screen">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Chat</title>
+    <style>
+      .chatMessage {
+        border: solid 1px rgba(255, 255, 255, 0.3);
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 25px;
+        color: darkblue;
+        min-width: 150px;
+        text-align: center;
+        width: fit-content;
+        padding: 10px 20px;
+        margin: 5px;
+      }
+      .chatMessageText{
+        font-size: 18px;
+        font-weight: 500;
+      }
+    </style>
   </head>
-  <body class="h-screen box-border">
-    <div class="container mx-auto">
-      <main class="chat h-screen pb-5 overflow-y-auto"></main>
+
+  <body class="h-screen box-border bg-gradient-to-r from-blue-500 to-cyan-500 ">
+    <div class="container relative mx-auto px-10">
+        <header class="py-3 mb-5">
+            <h1 class="text-6xl font-bold text-white text-center">Simple WebSocket Chat</h1>
+        </header>
+      <main class="chat h-screen pb-5 overflow-y-auto w-1/2 m-auto"></main>
       <form
-        class="absolute bottom-0 right-0 left-0 h-18 p-6 bg-gray-300"
+        class="send-form sticky bottom-0 right-0 left-0 h-18 p-3 flex gap-10 items-center justify-center"
         action="submit"
       >
-        <input class="w-1/2" type="text">
-        <button type="submit">Send</button>
+        <input type="text" autofocus class="send-form__text w-1/2 bg-white/[.06] border-solid border-2 border-sky-500 outline-none p-4 rounded-lg text-lg" rows="5" cols="10">
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-6 px-8 rounded-full text-2xl">Send</button>
       </form>
     </div>
     <script>
       const socket = new WebSocket("ws://localhost:3000");
       const chat = document.querySelector(".chat");
+      const sendForm = document.querySelector(".send-form");
+      const sendFormText = document.querySelector(".send-form__text");
+
+      sendForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        socket.send(sendFormText.value);
+        sendFormText.value = "";
+      });
 
       function handleChatData(chatFeed) {
         for (const message of chatFeed) {
@@ -29,8 +58,9 @@
       function handleMessage(text) {
         const chatMessage = document.createElement("div");
         const chatMessageText = document.createElement("div");
+        chatMessage.classList.add("chatMessage");
+        chatMessageText.classList.add("chatMessageText");
         chatMessageText.textContent = text;
-        chatMessage.classList.add('bg-yellow')
         chat.appendChild(chatMessage);
         chatMessage.appendChild(chatMessageText);
       }
@@ -38,7 +68,7 @@
       socket.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
         if (data.type === "message") {
-            handleMessage(data.message);
+          handleMessage(data.message);
         }
         if (data.type === "chat") {
           handleChatData(data.chat);
