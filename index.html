@@ -1,15 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-screen">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Chat</title>
   </head>
-  <body>
+  <body class="h-screen box-border">
+    <div class="container mx-auto">
+      <main class="chat h-screen pb-5 overflow-y-auto"></main>
+      <form
+        class="absolute bottom-0 right-0 left-0 h-18 p-6 bg-gray-300"
+        action="submit"
+      >
+        <input class="w-1/2" type="text">
+        <button type="submit">Send</button>
+      </form>
+    </div>
     <script>
       const socket = new WebSocket("ws://localhost:3000");
+      const chat = document.querySelector(".chat");
+
+      function handleChatData(chatFeed) {
+        for (const message of chatFeed) {
+          handleMessage(message);
+        }
+      }
+      function handleMessage(text) {
+        const chatMessage = document.createElement("div");
+        const chatMessageText = document.createElement("div");
+        chatMessageText.textContent = text;
+        chatMessage.classList.add('bg-yellow')
+        chat.appendChild(chatMessage);
+        chatMessage.appendChild(chatMessageText);
+      }
+
       socket.addEventListener("message", (event) => {
-        console.log(event);
+        const data = JSON.parse(event.data);
+        if (data.type === "message") {
+            handleMessage(data.message);
+        }
+        if (data.type === "chat") {
+          handleChatData(data.chat);
+        }
       });
     </script>
   </body>
