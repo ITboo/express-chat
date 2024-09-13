@@ -11,8 +11,17 @@ app.get("/ping", (req, res) => {
 
 const wss = new WebSocketServer({ server });
 
+const chat = [];
+
 wss.on("connection", (ws) => {
-  ws.send("WebSocket server is started");
+  ws.on("message", (data) => {
+    const message = data.toString();
+    chat.push(message);
+    for (const client of wss.clients) {
+      client.send(JSON.stringify({ type: "message", message }));
+    }
+  });
+  ws.send(JSON.stringify({ type: "chat", chat }));
 });
 
 const PORT = 3000;
